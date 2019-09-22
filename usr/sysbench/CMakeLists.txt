@@ -19,4 +19,5 @@ add_executable(sysbench
         sb_timer.c
         sb_timer.h
         sb_util.h
-        sysbench.c)
+        sysbench.c
+        sysbench.h)
