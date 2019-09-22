@@ -96,6 +96,7 @@ int sb_option_parse(int argc, char **argv) {
   }
   return SB_OK;
 }
+
 /*
 
 int sb_option_int(const char *name, sb_list_t opts) {
