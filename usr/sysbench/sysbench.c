@@ -8,6 +8,6 @@
 int main(int argc, char *argv[]) {
   sb_option_init();
   sb_test_init();
-  ASSERT(sb_option_parse(argc, argv));
+  (sb_option_parse(argc, argv));
   sb_option_print();
 }
