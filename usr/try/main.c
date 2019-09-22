@@ -34,14 +34,15 @@ spinlock_t spinlock;
 
 // the code that each thread runs
 static int my_thread(void *data) {
-  acquire_spinlock(&spinlock);
+//  acquire_spinlock(&spinlock);
   ++common;
-  release_spinlock(&spinlock);
+  printf("%d ",common);
+//  release_spinlock(&spinlock);
+  return common;
 }
 
 
 int main(int argc, char *argv[]) {
-  errval_t err;
   int num_threads = 0;
 
   // # of threads to start
@@ -57,12 +58,12 @@ int main(int argc, char *argv[]) {
   // start threads
   for (int i = 0; i < num_threads; i++) {
     p[i] = thread_create(my_thread, NULL);
-    debug_printf("started thread %d\n", i);
+//    debug_printf("started thread %d\n", i);
   }
 
   for (int i = 0; i < num_threads; i++) {
-    thread_join(my_thread, NULL);
-    debug_printf("started thread %d\n", i);
+    thread_join(p[i], NULL);
+//    debug_printf("started thread %d\n", i);
   }
   debug_printf("finished.\n");
 
