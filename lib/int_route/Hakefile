@@ -1,0 +1,39 @@
+--------------------------------------------------------------------------
+-- Copyright (c) 2007-2013, ETH Zurich.
+-- All rights reserved.
+--
+-- This file is distributed under the terms in the attached LICENSE file.
+-- If you do not find this file, copies can be found by writing to:
+-- ETH Zurich D-INFK, Universitaetstr. 6, CH-8092 Zurich. Attn: Systems Group.
+--
+-- Hakefile for lib/int_route
+-- 
+--------------------------------------------------------------------------
+
+[
+
+    build library { target = "int_route_server",
+                    cFiles = [ "server/init.c" ],
+                    flounderDefs = [ "int_route_service" ],
+                    flounderBindings = [ "int_route_service", "int_route_controller" ],
+                    flounderExtraBindings = [ ("int_route_service", ["rpcclient"]) ],
+                    addLibraries = [ "skb", "hashtable" ] 
+                   },
+
+    -- Build the library that contains a msix_controller driver
+    -- This does only exist in library form for MSIx controller,
+    -- as they (sometimes) have to be co-located with device drivers.
+    build library { target = "int_msix_ctrl",
+                    cFiles = [ "msix_ctrl/client.c" ],
+                    flounderBindings =["int_route_controller"],
+                    mackerelDevices = ["msix", "msix_e1000"]
+                   },
+
+
+    build library { target = "int_route_client",
+                    cFiles = [ "client/client.c", "client/int_model.c" ],
+                    flounderDefs = [ "int_route_service" ],
+                    flounderBindings = [ "int_route_service" ],
+                    flounderExtraBindings = [ ("int_route_service", ["rpcclient"]) ]
+                   }
+]

@@ -1,0 +1,10 @@
+
+
+ NAS Parallel Benchmarks 2.3 OpenMP C version - FT Benchmark
+
+ Size                : 256x256x128
+ Iterations          :           6
+Result verification successful
+class = A
+Computetime 1 10718165610.000000
+client done

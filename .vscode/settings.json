@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "Hakefile": "haskell",
+        "nameservice_client.h": "c",
+        "spawn_client.h": "c",
+        "*.c0": "cpp",
+        "string.h": "c"
+    },
+    "git.ignoreLimitWarning": true
+}

@@ -1,0 +1,123 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdftex 2019.9.5)  20 SEP 2019 16:44
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**devif.tex
+(./devif.tex
+! Undefined control sequence.
+l.1 \documentclass
+                  [a4paper,11pt,twoside]{report}
+? 
+! Undefined control sequence.
+l.2 \usepackage
+               {bftn}
+? 
+! Undefined control sequence.
+l.3 \usepackage
+               {calc}
+? 
+! Undefined control sequence.
+l.4 \usepackage
+               {hyperref}
+? 
+! Undefined control sequence.
+l.5 \usepackage
+               {hyphenat}
+? 
+! Undefined control sequence.
+l.6 \usepackage
+               {verbatim}
+? 
+! Undefined control sequence.
+l.7 \usepackage
+               {xspace}
+? 
+! Undefined control sequence.
+l.8 \usepackage
+               {pifont}
+? 
+! Undefined control sequence.
+l.9 \usepackage
+               {pxfonts}
+? 
+! Undefined control sequence.
+l.10 \usepackage
+                {textcomp}
+? 
+! Undefined control sequence.
+l.11 \usepackage
+                {amsmath}
+? 
+! Undefined control sequence.
+l.12 \usepackage
+                {listings}
+? 
+! Undefined control sequence.
+l.13 \usepackage
+                [framemethod=default]{mdframed}
+? 
+! Undefined control sequence.
+l.14 \usepackage
+                [shortlabels]{enumitem}
+? 
+! Undefined control sequence.
+l.15 \usepackage
+                {parskip}
+? 
+! Undefined control sequence.
+l.16 \usepackage
+                {xparse}
+? 
+! Undefined control sequence.
+l.17 \usepackage
+                {natbib}
+? 
+! Undefined control sequence.
+l.18 \usepackage
+                [all,cmtip]{xy}
+? 
+! Undefined control sequence.
+l.19 \usepackage
+                {xcolor}% or package color
+? 
+! Undefined control sequence.
+l.21 \title
+           {Device Queues in Barrelfish}
+? 
+! Undefined control sequence.
+l.22 \author
+            {Barrelfish project}
+? 
+! Undefined control sequence.
+l.23 \tnnumber
+              {26}
+? 
+! Undefined control sequence.
+l.24 \tnkey
+           {DeviceQueues}
+? 
+! Undefined control sequence.
+l.26 \begin
+           {document}
+? 
+! Undefined control sequence.
+l.27 	\maketitle
+                			% Uncomment for final draft
+? 
+! Undefined control sequence.
+l.29 	\begin
+            {versionhistory}
+? 
+! Undefined control sequence.
+l.30 		\vhEntry
+               {0.1}{24.10.2017}{RH}{Initial Version}
+? 
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] )</usr/share/texlive/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
+Output written on devif.pdf (1 page, 19328 bytes).
+PDF statistics:
+ 12 PDF objects out of 1000 (max. 8388607)
+ 7 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

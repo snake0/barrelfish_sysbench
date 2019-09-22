@@ -1,0 +1,8 @@
+[ build application { 
+    target = "try", 
+    cFiles = concat [ find cInDir dir | dir <- [
+        "."
+      ] 
+    ]
+  }
+]

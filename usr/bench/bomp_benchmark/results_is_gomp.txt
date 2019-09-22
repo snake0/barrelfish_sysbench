@@ -1,0 +1,10 @@
+
+
+ NAS Parallel Benchmarks 2.3 OpenMP C version - IS Benchmark
+
+ Size:  8388608  (class A)
+ Iterations:   10
+
+   iteration
+Computetime 1 617686764.000000
+client done

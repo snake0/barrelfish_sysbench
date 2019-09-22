@@ -1,0 +1,11 @@
+Benchmark start
+
+ NAS Parallel Benchmarks 2.3 OpenMP C version - CG Benchmark
+ Size:      14000
+ Iterations:    15
+ Benchmark completed
+ VERIFICATION SUCCESSFUL
+ Zeta is      1.713023505403e+01
+ Error is     8.775202786637e-13
+Computetime 1 2531496210.000000
+client done
