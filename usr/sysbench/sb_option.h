@@ -39,7 +39,7 @@ int sb_option_set_value(const char *name, char *value, sb_list_t opts);
 void sb_option_init(void);
 int sb_option_parse(int argc, char **argv);
 
-int sb_option_int(const char *name, sb_list_t opts);
+//int sb_option_int(const char *name, sb_list_t opts);
 
 void sb_option_print(void);
 #endif // SB_OPTION_H

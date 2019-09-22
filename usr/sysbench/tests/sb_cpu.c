@@ -42,7 +42,7 @@ void register_cpu(void) {
 
 
 int cpu_init(void) {
-
+  return 0;
 }
 
 void cpu_print_mode(void) {
@@ -54,5 +54,5 @@ void cpu_report_cumulative(sb_stat_t *stat) {
 }
 
 int cpu_done(void) {
-
+  return 0;
 }

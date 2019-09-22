@@ -96,7 +96,7 @@ int sb_option_parse(int argc, char **argv) {
   }
   return SB_OK;
 }
-
+/*
 
 int sb_option_int(const char *name, sb_list_t opts) {
   sb_option_t *opt = sb_option_get_entry(name, opts);
@@ -109,7 +109,7 @@ int sb_option_int(const char *name, sb_list_t opts) {
   if (errno)
     return SB_OPTION_TYPE;
   return ret;
-}
+}*/
 
 void sb_option_print(void) {
   {

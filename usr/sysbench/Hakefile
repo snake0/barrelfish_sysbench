@@ -1,0 +1,12 @@
+[ build application {
+    target = "sysbench",
+    cFiles = concat [ find cInDir dir | dir <- [
+        ".",
+        "tests"
+      ]
+    ],
+    addIncludes = [
+        "tests"
+    ]
+  }
+]
