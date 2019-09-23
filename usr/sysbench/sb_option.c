@@ -42,12 +42,12 @@ void sb_option_init(void) {
     sb_list_add(general_options, default_general_options[i]);
 }
 
-/* parse option like '--xxxxx' and set the option */
+/* parse option like '--xxxxx=2' and set the option */
 static int parse_option(char *arg, sb_list_t opts) {
   char *assign = strchr(arg, '=');
   if (!assign)
     return SB_OPTION_SYNTAX;
-
+printf("----%s : %s\n", arg+2,assign+1);
   *assign = '\0';
   if (sb_option_set_value(arg + 2, assign + 1, opts))
     return SB_OPTION_UNKNOWN;

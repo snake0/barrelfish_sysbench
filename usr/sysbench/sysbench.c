@@ -6,23 +6,24 @@
 /*
 
 static int run_test();
+ */
 int main(int argc, char *argv[]) {
   sb_option_init();
   sb_test_init();
   sb_option_parse(argc, argv);
   sb_option_print();
-  run_test();
+//  run_test();
 }
 
 struct thread_barrier barrier;
 
-int run_test() {
-  thread_barrier_init(&barrier, 100, 0, 0);
-}*/
+//int run_test() {
+//  thread_barrier_init(&barrier, 100, 0, 0);
+//}
 //
 // Created by SNAKE on 9/18/19.
 //
-
+/*
 struct thread_barrier barrier;
 
 volatile int count = 0;
@@ -62,4 +63,4 @@ int thread(void *arg) {
   thread_barrier_wait(&barrier);
   printf("%d ",count);
   return count;
-}
+}*/
