@@ -8,6 +8,7 @@
 #include "sb_list.h"
 #include "sysbench.h"
 #include <barrelfish/domain.h>
+#include <sysbench.h>
 
 /* CPU test arguments */
 static sb_option_t cpu_options[] =
@@ -54,14 +55,15 @@ void cpu_print_mode(void) {
 }
 
 int cpu_thread_run(int c) {
-  printf("cpu run on core %d\n", disp_get_core_id());
+  (void) c;
+  return 0;
 }
 
 
 void cpu_report_cumulative(sb_stat_t *stat) {
   printf("CPU speed:");
   printf("    events per second: %8.2f",
-         stat->events / stat->time_interval);
+         sb_globals.events / stat->latency_sum);
 
   sb_report_cumulative(stat);
 }

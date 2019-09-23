@@ -2,21 +2,20 @@
 // Created by SNAKE on 9/21/19.
 //
 
-#include <math.h>
 #include "sysbench.h"
 
 /* Barrier to ensure we start the benchmark run when all workers are ready */
 static struct thread_barrier worker_barrier;
 
 /* Barrier to signal reporting threads */
-static struct thread_barrier report_barrier;
+//static struct thread_barrier report_barrier;
 
 static spinlock_t spinlock;
 
 static struct thread **workers;
 
 static int worker_routine(void *arg);
-int event_run(int thread_id);
+int event_run(long thread_id);
 static int worker_started_callback(void *arg);
 
 static int start_workers(void);
@@ -44,11 +43,11 @@ int main(int argc, char *argv[]) {
 }
 
 int worker_routine(void *arg) {
-  int thread_id = (int) arg;
+  long thread_id = (long) arg;
   int rc = 0;
 
   if (current_test->ops.thread_init != NULL && current_test->ops.thread_init(thread_id) != 0) {
-    printf("Worker thread (#%d) failed to initialize!", thread_id);
+    printf("Worker thread (#%ld) failed to initialize!", thread_id);
     sb_globals.error = 1;
     thread_barrier_wait(&worker_barrier);
     return SB_INIT_FAIL;
@@ -67,21 +66,21 @@ int worker_routine(void *arg) {
   return SB_OK;
 }
 
-static int events CK_CC_CACHELINE = 0;
 
 /* function to run all events of the test */
-int event_run(int thread_id) {
+int event_run(long thread_id) {
   int rc = 0;
-
   for (;;) {
     sb_timer_start(&timers[thread_id]);
     rc = current_test->ops.event_run(0);
     sb_timer_stop(&timers[thread_id]);
 
-    acquire_spinlock(&spinlock);
-    if (++events == sb_globals.events)
+    printf("%d ", disp_get_core_id());
+
+//    acquire_spinlock(&spinlock);
+    if (timers[thread_id].events == sb_globals.events)
       break;
-    release_spinlock(&spinlock);
+//    release_spinlock(&spinlock);
   }
 
   return rc;
@@ -90,7 +89,7 @@ int event_run(int thread_id) {
 int worker_started_callback(void *arg) {
   if (sb_globals.error)
     return 1;
-
+  (void) arg;
   printf("Threads started!\n");
 
   return 0;
@@ -101,7 +100,7 @@ int start_workers(void) {
   if (!workers)
     return SB_MALLOC_FAIL;
 
-  for (int i = 0; i < sb_globals.threads; ++i) {
+  for (long i = 0; i < sb_globals.threads; ++i) {
     if (!(workers[i] = thread_create(worker_routine, (void *) i))) {
       finish_up();
       return SB_THREAD_CREATE_FAIL;
@@ -128,17 +127,17 @@ int stop_workers(void) {
     return SB_INIT_FAIL;
 
   for (int i = 0; i < sb_globals.threads; ++i)
-    if (thread_join(workers, 0)) {
+    if (thread_join(workers[i], 0)) {
       finish_up();
       return SB_INIT_FAIL;
     }
 
   return SB_OK;
 }
+sb_timer_t t;
 
 void report_cumulative(void) {
   sb_stat_t stat;
-  sb_timer_t t;
 
   for (size_t i = 0; i < sb_globals.threads; i++)
     sb_timer_checkpoint(&timers[i], &timers_copy[i]);
@@ -154,6 +153,8 @@ void report_cumulative(void) {
   stat.latency_avg = NS2SEC(sb_timer_avg(&t));
   stat.latency_sum = NS2SEC(sb_timer_sum(&t));
 
+//  assert(t.events == sb_globals.events);
+
   if (current_test && current_test->ops.report_cumulative)
     current_test->ops.report_cumulative(&stat);
   else
@@ -164,33 +165,29 @@ void sb_report_cumulative(sb_stat_t *stat) {
   const unsigned int nthreads = sb_globals.threads;
 
   printf("\n");
-  printf("Throughput:");
-  printf("    events/s (eps):                      %.4f",
+  printf("Throughput:\n");
+  printf("    events/s (eps):                      %.4f\n",
          sb_globals.events / stat->latency_sum);
-  printf("    time elapsed:                        %.4fs",
+  printf("    time elapsed:                        %.4fs\n",
          stat->latency_sum);
-  printf("    total number of events:              %d",
+  printf("    total number of events:              %d\n",
          sb_globals.events);
 
   printf("\n");
 
-  printf("Latency (ms):");
-  printf("         min: %39.2f",
+  printf("Latency (ms):\n");
+  printf("         min: %39.2f\n",
          SEC2MS(stat->latency_min));
-  printf("         avg: %39.2f",
+  printf("         avg: %39.2f\n",
          SEC2MS(stat->latency_avg));
-  printf("         max: %39.2f",
+  printf("         max: %39.2f\n",
          SEC2MS(stat->latency_max));
 
-  printf("         sum: %39.2f",
+  printf("         sum: %39.2f\n",
          SEC2MS(stat->latency_sum));
   printf("\n");
 
   /* Aggregate temporary timers copy */
-  sb_timer_t t;
-  sb_timer_init(&t);
-  for (unsigned i = 0; i < nthreads; i++)
-    t = sb_timer_merge(&t, &timers_copy[i]);
 
   /* Calculate and print events distribution by threads */
   const double events_avg = (double) t.events / nthreads;
@@ -209,10 +206,10 @@ void sb_report_cumulative(sb_stat_t *stat) {
   events_stddev = sqrt(events_stddev / nthreads);
   time_stddev = sqrt(time_stddev / nthreads);
 
-  printf("Threads fairness:");
-  printf("    events (avg/stddev):           %.4f/%3.2f",
+  printf("Threads fairness:\n");
+  printf("    events (avg/stddev):           %.4f/%3.2f\n",
          events_avg, events_stddev);
-  printf("    execution time (avg/stddev):   %.4f/%3.2f",
+  printf("    execution time (avg/stddev):   %.4f/%3.2f\n",
          time_avg, time_stddev);
   printf("\n");
 

@@ -55,5 +55,7 @@ static inline void release_spinlock(spinlock_t *lock)
     __asm__ __volatile__("movl $0, %0\n\t"
                     : "+m" (*lock) : : "memory" );
 }
-
+static inline void init_spinlock(spinlock_t *spinlock) {
+  *spinlock = 0;
+}
 #endif

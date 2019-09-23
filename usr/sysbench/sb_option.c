@@ -31,8 +31,7 @@ static int sb_option_to_int(const char *name, sb_list_t opts, int *value) {
     return SB_OPTION_TYPE;
 
   int ret = (int) strtol(opt->value, NULL, 10);
-  if (errno)
-    return SB_OPTION_TYPE;
+
   if (value)
     *value = ret;
   return SB_OK;

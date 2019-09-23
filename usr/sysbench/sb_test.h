@@ -37,11 +37,11 @@ typedef struct {
 
 typedef int sb_op_init(void);
 typedef int sb_op_prepare(void);
-typedef int sb_op_thread_init(int);
+typedef int sb_op_thread_init(long);
 typedef int sb_op_thread_run(int);
 typedef void sb_op_print_mode(void);
 typedef void sb_op_report(sb_stat_t *);
-typedef int sb_op_thread_done(int);
+typedef int sb_op_thread_done(long);
 typedef int sb_op_cleanup(void);
 typedef int sb_op_done(void);
 

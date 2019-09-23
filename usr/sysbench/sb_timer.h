@@ -14,6 +14,8 @@
 #include <barrelfish_kpi/spinlocks_arch.h>
 
 #include "sb_util.h"
+#include "sysbench.h"
+#include <stdio.h>
 
 #define NS_PER_SEC 1000000000
 #define MS_PER_SEC 1000
@@ -66,7 +68,8 @@ typedef struct {
   char pad[SB_CACHELINE_PAD(sizeof(struct timespec) * 2 + sizeof(uint64_t) * 5 +
                             sizeof(spinlock_t))];
 } sb_timer_t;
-
+sb_timer_t *timers;
+sb_timer_t *timers_copy;
 
 static inline int sb_nanosleep(uint64_t ns) {
   struct timespec ts = {ns / NS_PER_SEC, (long) ns % NS_PER_SEC};
@@ -103,7 +106,7 @@ static inline uint64_t sb_timer_stop(sb_timer_t *t) {
 
   t->events++;
   t->sum_time += elapsed;
-
+  printf("thread #%ld event %ld\n", t - timers, t->events);
   if (SB_UNLIKELY(elapsed < t->min_time))
     t->min_time = elapsed;
   if (SB_UNLIKELY(elapsed > t->max_time))
@@ -113,6 +116,8 @@ static inline uint64_t sb_timer_stop(sb_timer_t *t) {
 
   return elapsed;
 }
+
+int init_timers(void);
 
 /*
   get the current timer value in nanoseconds without affecting its state, i.e.
@@ -156,12 +161,8 @@ uint64_t sb_timer_max(sb_timer_t *);
 /* sum data from two timers. used in summing data from multiple threads */
 sb_timer_t sb_timer_merge(sb_timer_t *, sb_timer_t *);
 
-
+int sb_timer_events_sum(sb_timer_t *, int size);
 /* timers for test */
-
-sb_timer_t *timers;
-sb_timer_t *timers_copy;
-int init_timers(void);
 
 
 #endif //SYSBENCH_SB_TIMER_H

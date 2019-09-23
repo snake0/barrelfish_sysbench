@@ -5,8 +5,7 @@
 #include "sb_timer.h"
 #include "sb_util.h"
 #include "sysbench.h"
-#include <string.h>
-
+#include <barrelfish/barrelfish.h>
 /* Some functions for simple time operations */
 
 /* initialize timer */
@@ -146,8 +145,8 @@ int init_timers(void) {
 /* init per thread timers */
   size_t size = sizeof(sb_timer_t) * sb_globals.threads;
 
-  posix_memalign((void **) &timers, CK_MD_CACHELINE, size);
-  posix_memalign((void **) &timers_copy, CK_MD_CACHELINE, size);
+  timers = (sb_timer_t*)malloc(size);
+  timers_copy = (sb_timer_t*)malloc(size);
 
   if (timers == NULL || timers_copy == NULL)
     return SB_INIT_FAIL;
