@@ -23,6 +23,29 @@ static sb_option_t *sb_option_get_entry(const char *name, sb_list_t opts) {
   return NULL;
 }
 
+static int sb_option_to_int(const char *name, sb_list_t opts, int *value) {
+  sb_option_t *opt = sb_option_get_entry(name, opts);
+  if (!opt)
+    return SB_OPTION_UNKNOWN;
+  if (opt->type != SB_ARG_TYPE_INT)
+    return SB_OPTION_TYPE;
+
+  int ret = (int) strtol(opt->value, NULL, 10);
+  if (errno)
+    return SB_OPTION_TYPE;
+  if (value)
+    *value = ret;
+  return SB_OK;
+}
+
+static int sb_option_set_global(void) {
+  int r;
+  r = sb_option_to_int(
+    "threads", general_options,
+    &sb_globals.threads);
+  if (r) return r;
+}
+
 int sb_option_set_value(const char *name, char *value, sb_list_t opts) {
   sb_option_t *opt = sb_option_get_entry(name, opts);
 
@@ -65,6 +88,7 @@ static int parse_test_option(int i, int argc, char **argv) {
       sb_globals.test = test;
       sb_globals.testname = test->sname;
 
+      ++i;
       for (; i < argc; ++i) {
         if (!strncmp("--", argv[i], 2)) {
           if ((r = parse_option(argv[i], test->options)))
@@ -94,23 +118,10 @@ int sb_option_parse(int argc, char **argv) {
       break;
     }
   }
+
+  sb_option_set_global();
   return SB_OK;
 }
-
-/*
-
-int sb_option_int(const char *name, sb_list_t opts) {
-  sb_option_t *opt = sb_option_get_entry(name, opts);
-  if (!opt)
-    return SB_OPTION_UNKNOWN;
-  if (opt->type != SB_ARG_TYPE_INT)
-    return SB_OPTION_TYPE;
-
-  int ret = (int) strtol(opt->value, NULL, 10);
-  if (errno)
-    return SB_OPTION_TYPE;
-  return ret;
-}*/
 
 void sb_option_print(void) {
   {
@@ -121,7 +132,7 @@ void sb_option_print(void) {
     }
   }
   {
-    printf("%s test options: \n", sb_globals.testname);
+    printf("test %s : command %s\n", sb_globals.testname, sb_globals.cmdname);
     sb_list_for_each(sb_globals.test->options) {
       sb_option_t *opt = sb_list_entry(sb_option_t);
       printf("  %-20s: %4s\n", opt->name, opt->value);

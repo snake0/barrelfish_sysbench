@@ -16,7 +16,7 @@
 #include <barrelfish/threads.h>
 
 struct {
-  unsigned int threads CK_CC_CACHELINE;
+  int threads CK_CC_CACHELINE;
   const char *testname, *cmdname;
   sb_test_t *test;
 } sb_globals CK_CC_CACHELINE;
