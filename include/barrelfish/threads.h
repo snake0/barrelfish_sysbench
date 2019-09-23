@@ -69,8 +69,7 @@ void thread_sem_post(struct thread_sem *sem);
 /* thread barrier functions */
 int thread_barrier_init(struct thread_barrier *barrier, unsigned int count,
                         thread_func_t back_func, void *data);
-int sb_barrier_wait(struct thread_barrier *barrier);
-void sb_barrier_destroy(struct thread_barrier *barrier);
+int thread_barrier_wait(struct thread_barrier *barrier);
 
 void thread_set_tls(void *);
 void *thread_get_tls(void);
