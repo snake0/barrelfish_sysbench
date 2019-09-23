@@ -66,6 +66,12 @@ void thread_sem_wait(struct thread_sem *sem);
 bool thread_sem_trywait(struct thread_sem *sem);
 void thread_sem_post(struct thread_sem *sem);
 
+/* thread barrier functions */
+int thread_barrier_init(struct thread_barrier *barrier, unsigned int count,
+                        thread_func_t back_func, void *data);
+int sb_barrier_wait(struct thread_barrier *barrier);
+void sb_barrier_destroy(struct thread_barrier *barrier);
+
 void thread_set_tls(void *);
 void *thread_get_tls(void);
 
@@ -85,7 +91,7 @@ void thread_get_outgoing_token(uint32_t *token);
 
 /// Set/get a local trigger for currently processed event channel
 void thread_set_local_trigger(struct waitset_chanstate *trigger);
-struct waitset_chanstate * thread_get_local_trigger(void);
+struct waitset_chanstate *thread_get_local_trigger(void);
 
 struct flounder_rpc_context;
 
@@ -107,12 +113,12 @@ extern void thread_once_internal(thread_once_t *control, void (*func)(void));
  * \param func Callback to be invoked.
  */
 static inline void thread_once(thread_once_t *control, void (*func)(void)) {
-    assert(control != NULL);
-    assert(func != NULL);
-    thread_once_t x = *control; // unprotected access
-    if (x > thread_once_local_epoch) {
-        thread_once_internal(control, func);
-    }
+  assert(control != NULL);
+  assert(func != NULL);
+  thread_once_t x = *control; // unprotected access
+  if (x > thread_once_local_epoch) {
+    thread_once_internal(control, func);
+  }
 }
 
 /**

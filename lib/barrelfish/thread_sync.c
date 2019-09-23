@@ -29,10 +29,9 @@
  *
  * \param cond Condition variable pointer
  */
-void thread_cond_init(struct thread_cond *cond)
-{
-    cond->queue = NULL;
-    cond->lock = 0;
+void thread_cond_init(struct thread_cond *cond) {
+  cond->queue = NULL;
+  cond->lock = 0;
 }
 
 /**
@@ -46,35 +45,34 @@ void thread_cond_init(struct thread_cond *cond)
  * \param cond  Condition variable pointer
  * \param mutex Optional pointer to mutex to unlock.
  */
-void thread_cond_wait(struct thread_cond *cond, struct thread_mutex *mutex)
-{
-    dispatcher_handle_t disp = disp_disable();
+void thread_cond_wait(struct thread_cond *cond, struct thread_mutex *mutex) {
+  dispatcher_handle_t disp = disp_disable();
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_WAIT_ENTER,
-                (uintptr_t)cond);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_WAIT_ENTER,
+              (uintptr_t) cond);
 
-    acquire_spinlock(&cond->lock);
+  acquire_spinlock(&cond->lock);
 
-    // Release the lock
-    if (mutex != NULL) {
-        struct thread *wakeup = thread_mutex_unlock_disabled(disp, mutex);
+  // Release the lock
+  if (mutex != NULL) {
+    struct thread *wakeup = thread_mutex_unlock_disabled(disp, mutex);
 
-        if(wakeup != NULL) {
-            errval_t err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
-            assert_disabled(err_is_ok(err));
-        }
+    if (wakeup != NULL) {
+      errval_t err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
+      assert_disabled(err_is_ok(err));
     }
+  }
 
-    // Block on the condition variable and release spinlock
-    thread_block_and_release_spinlock_disabled(disp, &cond->queue, &cond->lock);
+  // Block on the condition variable and release spinlock
+  thread_block_and_release_spinlock_disabled(disp, &cond->queue, &cond->lock);
 
-    // Re-acquire the mutex
-    if (mutex != NULL) {
-        thread_mutex_lock(mutex);
-    }
+  // Re-acquire the mutex
+  if (mutex != NULL) {
+    thread_mutex_lock(mutex);
+  }
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_WAIT_LEAVE,
-                (uintptr_t)cond);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_WAIT_LEAVE,
+              (uintptr_t) cond);
 }
 
 /**
@@ -85,34 +83,33 @@ void thread_cond_wait(struct thread_cond *cond, struct thread_mutex *mutex)
  *
  * \param cond Condition variable pointer
  */
-void thread_cond_signal(struct thread_cond *cond)
-{
-    struct thread *wakeup = NULL;
-    errval_t err = SYS_ERR_OK;
+void thread_cond_signal(struct thread_cond *cond) {
+  struct thread *wakeup = NULL;
+  errval_t err = SYS_ERR_OK;
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_SIGNAL,
-                (uintptr_t)cond);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_SIGNAL,
+              (uintptr_t) cond);
 
-    // Wakeup one waiting thread
-    dispatcher_handle_t disp = disp_disable();
-    acquire_spinlock(&cond->lock);
-    if (cond->queue != NULL) {
-        wakeup = thread_unblock_one_disabled(disp, &cond->queue, NULL);
-        if(wakeup != NULL) {
-            err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
-        }
+  // Wakeup one waiting thread
+  dispatcher_handle_t disp = disp_disable();
+  acquire_spinlock(&cond->lock);
+  if (cond->queue != NULL) {
+    wakeup = thread_unblock_one_disabled(disp, &cond->queue, NULL);
+    if (wakeup != NULL) {
+      err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
     }
-    release_spinlock(&cond->lock);
-    disp_enable(disp);
+  }
+  release_spinlock(&cond->lock);
+  disp_enable(disp);
 
-    if(err_is_fail(err)) {
-        USER_PANIC_ERR(err, "remote wakeup from condition signal");
-    }
+  if (err_is_fail(err)) {
+    USER_PANIC_ERR(err, "remote wakeup from condition signal");
+  }
 
-    if(wakeup != NULL) {
-        // XXX: Need directed yield to inter-disp thread
-        thread_yield();
-    }
+  if (wakeup != NULL) {
+    // XXX: Need directed yield to inter-disp thread
+    thread_yield();
+  }
 }
 
 /**
@@ -123,36 +120,35 @@ void thread_cond_signal(struct thread_cond *cond)
  *
  * \param cond Condition variable pointer
  */
-void thread_cond_broadcast(struct thread_cond *cond)
-{
-    struct thread *wakeupq = NULL;
-    bool foreignwakeup = false;
+void thread_cond_broadcast(struct thread_cond *cond) {
+  struct thread *wakeupq = NULL;
+  bool foreignwakeup = false;
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_BROADCAST,
-                (uintptr_t)cond);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_COND_BROADCAST,
+              (uintptr_t) cond);
 
-    // Wakeup all waiting threads
-    dispatcher_handle_t disp = disp_disable();
-    acquire_spinlock(&cond->lock);
-    wakeupq = thread_unblock_all_disabled(disp, &cond->queue, NULL);
-    release_spinlock(&cond->lock);
-    disp_enable(disp);
+  // Wakeup all waiting threads
+  dispatcher_handle_t disp = disp_disable();
+  acquire_spinlock(&cond->lock);
+  wakeupq = thread_unblock_all_disabled(disp, &cond->queue, NULL);
+  release_spinlock(&cond->lock);
+  disp_enable(disp);
 
-    foreignwakeup = (wakeupq != NULL);
-    // Now, wakeup all on foreign dispatchers
-    while (wakeupq != NULL) {
-        struct thread *wakeup = wakeupq;
-        wakeupq = wakeupq->next;
-        errval_t err = domain_wakeup_on(wakeup->disp, wakeup);
-        if(err_is_fail(err)) {
-            USER_PANIC_ERR(err, "remote wakeup from condition broadcast");
-        }
+  foreignwakeup = (wakeupq != NULL);
+  // Now, wakeup all on foreign dispatchers
+  while (wakeupq != NULL) {
+    struct thread *wakeup = wakeupq;
+    wakeupq = wakeupq->next;
+    errval_t err = domain_wakeup_on(wakeup->disp, wakeup);
+    if (err_is_fail(err)) {
+      USER_PANIC_ERR(err, "remote wakeup from condition broadcast");
     }
+  }
 
-    if(foreignwakeup) {
-        // XXX: Need directed yield to inter-disp thread
-        thread_yield();
-    }
+  if (foreignwakeup) {
+    // XXX: Need directed yield to inter-disp thread
+    thread_yield();
+  }
 }
 
 /**
@@ -160,12 +156,11 @@ void thread_cond_broadcast(struct thread_cond *cond)
  *
  * \param mutex Mutex pointer
  */
-void thread_mutex_init(struct thread_mutex *mutex)
-{
-    mutex->locked = 0;
-    mutex->holder = NULL;
-    mutex->queue = NULL;
-    mutex->lock = 0;
+void thread_mutex_init(struct thread_mutex *mutex) {
+  mutex->locked = 0;
+  mutex->holder = NULL;
+  mutex->queue = NULL;
+  mutex->lock = 0;
 }
 
 /**
@@ -175,27 +170,26 @@ void thread_mutex_init(struct thread_mutex *mutex)
  *
  * \param mutex Mutex pointer
  */
-void thread_mutex_lock(struct thread_mutex *mutex)
-{
-    dispatcher_handle_t handle = disp_disable();
-    struct dispatcher_generic *disp_gen = get_dispatcher_generic(handle);
+void thread_mutex_lock(struct thread_mutex *mutex) {
+  dispatcher_handle_t handle = disp_disable();
+  struct dispatcher_generic *disp_gen = get_dispatcher_generic(handle);
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_ENTER,
-                (uintptr_t)mutex);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_ENTER,
+              (uintptr_t) mutex);
 
-    acquire_spinlock(&mutex->lock);
-    if (mutex->locked > 0) {
-        thread_block_and_release_spinlock_disabled(handle, &mutex->queue,
-                                                   &mutex->lock);
-    } else {
-        mutex->locked = 1;
-        mutex->holder = disp_gen->current;
-        release_spinlock(&mutex->lock);
-        disp_enable(handle);
-    }
+  acquire_spinlock(&mutex->lock);
+  if (mutex->locked > 0) {
+    thread_block_and_release_spinlock_disabled(handle, &mutex->queue,
+                                               &mutex->lock);
+  } else {
+    mutex->locked = 1;
+    mutex->holder = disp_gen->current;
+    release_spinlock(&mutex->lock);
+    disp_enable(handle);
+  }
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_LEAVE,
-                (uintptr_t)mutex);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_LEAVE,
+              (uintptr_t) mutex);
 }
 
 /**
@@ -205,28 +199,27 @@ void thread_mutex_lock(struct thread_mutex *mutex)
  *
  * \param mutex Mutex pointer
  */
-void thread_mutex_lock_nested(struct thread_mutex *mutex)
-{
-    dispatcher_handle_t handle = disp_disable();
-    struct dispatcher_generic *disp_gen = get_dispatcher_generic(handle);
+void thread_mutex_lock_nested(struct thread_mutex *mutex) {
+  dispatcher_handle_t handle = disp_disable();
+  struct dispatcher_generic *disp_gen = get_dispatcher_generic(handle);
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_NESTED_ENTER,
-                (uintptr_t)mutex);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_NESTED_ENTER,
+              (uintptr_t) mutex);
 
-    acquire_spinlock(&mutex->lock);
-    if (mutex->locked > 0
-        && mutex->holder != disp_gen->current) {
-        thread_block_and_release_spinlock_disabled(handle, &mutex->queue,
-                                                   &mutex->lock);
-    } else {
-        mutex->locked++;
-        mutex->holder = disp_gen->current;
-        release_spinlock(&mutex->lock);
-        disp_enable(handle);
-    }
+  acquire_spinlock(&mutex->lock);
+  if (mutex->locked > 0
+      && mutex->holder != disp_gen->current) {
+    thread_block_and_release_spinlock_disabled(handle, &mutex->queue,
+                                               &mutex->lock);
+  } else {
+    mutex->locked++;
+    mutex->holder = disp_gen->current;
+    release_spinlock(&mutex->lock);
+    disp_enable(handle);
+  }
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_NESTED_LEAVE,
-                (uintptr_t)mutex);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_LOCK_NESTED_LEAVE,
+              (uintptr_t) mutex);
 }
 
 /**
@@ -239,32 +232,31 @@ void thread_mutex_lock_nested(struct thread_mutex *mutex)
  *
  * \returns true if lock acquired, false otherwise
  */
-bool thread_mutex_trylock(struct thread_mutex *mutex)
-{
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_TRYLOCK,
-                (uintptr_t)mutex);
+bool thread_mutex_trylock(struct thread_mutex *mutex) {
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_TRYLOCK,
+              (uintptr_t) mutex);
 
-    // Try first to avoid contention
-    if (mutex->locked > 0) {
-        return false;
-    }
+  // Try first to avoid contention
+  if (mutex->locked > 0) {
+    return false;
+  }
 
-    dispatcher_handle_t handle = disp_disable();
-    struct dispatcher_generic *disp_gen = get_dispatcher_generic(handle);
-    bool ret;
+  dispatcher_handle_t handle = disp_disable();
+  struct dispatcher_generic *disp_gen = get_dispatcher_generic(handle);
+  bool ret;
 
-    acquire_spinlock(&mutex->lock);
-    if (mutex->locked > 0) {
-        ret = false;
-    } else {
-        ret = true;
-        mutex->locked = 1;
-        mutex->holder = disp_gen->current;
-    }
-    release_spinlock(&mutex->lock);
+  acquire_spinlock(&mutex->lock);
+  if (mutex->locked > 0) {
+    ret = false;
+  } else {
+    ret = true;
+    mutex->locked = 1;
+    mutex->holder = disp_gen->current;
+  }
+  release_spinlock(&mutex->lock);
 
-    disp_enable(handle);
-    return ret;
+  disp_enable(handle);
+  return ret;
 }
 
 /**
@@ -278,32 +270,31 @@ bool thread_mutex_trylock(struct thread_mutex *mutex)
  * \return Pointer to thread to be woken on foreign dispatcher
  */
 struct thread *thread_mutex_unlock_disabled(dispatcher_handle_t handle,
-                                            struct thread_mutex *mutex)
-{
-    struct thread *ft = NULL;
+                                            struct thread_mutex *mutex) {
+  struct thread *ft = NULL;
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_UNLOCK,
-                (uintptr_t)mutex);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_MUTEX_UNLOCK,
+              (uintptr_t) mutex);
 
-    acquire_spinlock(&mutex->lock);
-    assert_disabled(mutex->locked > 0);
+  acquire_spinlock(&mutex->lock);
+  assert_disabled(mutex->locked > 0);
 
-    if(mutex->locked == 1) {
-        // Wakeup one waiting thread
-        if (mutex->queue != NULL) {
-            // XXX: This assumes dequeueing is off the top of the queue
-            mutex->holder = mutex->queue;
-            ft = thread_unblock_one_disabled(handle, &mutex->queue, NULL);
-        } else {
-            mutex->holder = NULL;
-            mutex->locked = 0;
-        }
+  if (mutex->locked == 1) {
+    // Wakeup one waiting thread
+    if (mutex->queue != NULL) {
+      // XXX: This assumes dequeueing is off the top of the queue
+      mutex->holder = mutex->queue;
+      ft = thread_unblock_one_disabled(handle, &mutex->queue, NULL);
     } else {
-        mutex->locked--;
+      mutex->holder = NULL;
+      mutex->locked = 0;
     }
+  } else {
+    mutex->locked--;
+  }
 
-    release_spinlock(&mutex->lock);
-    return ft;
+  release_spinlock(&mutex->lock);
+  return ft;
 }
 
 /**
@@ -313,115 +304,165 @@ struct thread *thread_mutex_unlock_disabled(dispatcher_handle_t handle,
  *
  * \param mutex Mutex pointer
  */
-void thread_mutex_unlock(struct thread_mutex *mutex)
-{
-    dispatcher_handle_t disp = disp_disable();
-    struct thread *wakeup = thread_mutex_unlock_disabled(disp, mutex);
-    errval_t err = SYS_ERR_OK;
+void thread_mutex_unlock(struct thread_mutex *mutex) {
+  dispatcher_handle_t disp = disp_disable();
+  struct thread *wakeup = thread_mutex_unlock_disabled(disp, mutex);
+  errval_t err = SYS_ERR_OK;
 
-    if (wakeup != NULL) {
-        err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
-    }
-    disp_enable(disp);
+  if (wakeup != NULL) {
+    err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
+  }
+  disp_enable(disp);
 
-    if(err_is_fail(err)) {
-        USER_PANIC_ERR(err, "remote wakeup from mutex unlock");
-    }
+  if (err_is_fail(err)) {
+    USER_PANIC_ERR(err, "remote wakeup from mutex unlock");
+  }
 
-    if(wakeup != NULL) {
-        // XXX: Need directed yield to inter-disp thread
-        thread_yield();
-    }
+  if (wakeup != NULL) {
+    // XXX: Need directed yield to inter-disp thread
+    thread_yield();
+  }
 }
 
-void thread_sem_init(struct thread_sem *sem, unsigned int value)
-{
-    assert(sem != NULL);
+void thread_sem_init(struct thread_sem *sem, unsigned int value) {
+  assert(sem != NULL);
 
-    sem->value = value;
-    sem->queue = NULL;
-    sem->lock = 0;
+  sem->value = value;
+  sem->queue = NULL;
+  sem->lock = 0;
 }
 
-void thread_sem_wait(struct thread_sem *sem)
-{
-    assert(sem != NULL);
+void thread_sem_wait(struct thread_sem *sem) {
+  assert(sem != NULL);
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_WAIT_ENTER,
-                (uintptr_t)sem);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_WAIT_ENTER,
+              (uintptr_t) sem);
 
-    dispatcher_handle_t disp = disp_disable();
-    acquire_spinlock(&sem->lock);
+  dispatcher_handle_t disp = disp_disable();
+  acquire_spinlock(&sem->lock);
 
-    if(sem->value < 1) {
-        // Not possible to decrement -- wait!
-        thread_block_and_release_spinlock_disabled(disp, &sem->queue, &sem->lock);
-    } else {
-        // Decrement possible
-        sem->value--;
-        release_spinlock(&sem->lock);
-        disp_enable(disp);
-    }
-
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_WAIT_LEAVE,
-                (uintptr_t)sem);
-}
-
-bool thread_sem_trywait(struct thread_sem *sem)
-{
-    assert(sem != NULL);
-    bool ret = false;
-
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_TRYWAIT,
-                (uintptr_t)sem);
-
-    dispatcher_handle_t disp = disp_disable();
-    acquire_spinlock(&sem->lock);
-
-    if(sem->value >= 1) {
-        // Decrement possible
-        sem->value--;
-        ret = true;
-    }
-
+  if (sem->value < 1) {
+    // Not possible to decrement -- wait!
+    thread_block_and_release_spinlock_disabled(disp, &sem->queue, &sem->lock);
+  } else {
+    // Decrement possible
+    sem->value--;
     release_spinlock(&sem->lock);
     disp_enable(disp);
+  }
 
-    return ret;
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_WAIT_LEAVE,
+              (uintptr_t) sem);
 }
 
-void thread_sem_post(struct thread_sem *sem)
-{
-    assert(sem != NULL);
+bool thread_sem_trywait(struct thread_sem *sem) {
+  assert(sem != NULL);
+  bool ret = false;
 
-    trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_POST, (uintptr_t)sem);
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_TRYWAIT,
+              (uintptr_t) sem);
 
-    dispatcher_handle_t disp = disp_disable();
-    struct thread *wakeup = NULL;
-    errval_t err = SYS_ERR_OK;
-    acquire_spinlock(&sem->lock);
+  dispatcher_handle_t disp = disp_disable();
+  acquire_spinlock(&sem->lock);
 
-    // Wakeup one?
-    if(sem->value == 0 && sem->queue != NULL) {
-        wakeup = thread_unblock_one_disabled(disp, &sem->queue, NULL);
-    } else {
-        sem->value++;
-    }
+  if (sem->value >= 1) {
+    // Decrement possible
+    sem->value--;
+    ret = true;
+  }
 
-    if(wakeup != NULL) {
-        err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
-        assert_disabled(err_is_ok(err));
-    }
+  release_spinlock(&sem->lock);
+  disp_enable(disp);
 
-    release_spinlock(&sem->lock);
-    disp_enable(disp);
-
-    if(err_is_fail(err)) {
-        USER_PANIC_ERR(err, "remote wakeup from semaphore post");
-    }
-
-    if(wakeup != NULL) {
-        // XXX: Need directed yield to inter-disp thread
-        thread_yield();
-    }
+  return ret;
 }
+
+void thread_sem_post(struct thread_sem *sem) {
+  assert(sem != NULL);
+
+  trace_event(TRACE_SUBSYS_THREADS, TRACE_EVENT_THREADS_SEM_POST, (uintptr_t) sem);
+
+  dispatcher_handle_t disp = disp_disable();
+  struct thread *wakeup = NULL;
+  errval_t err = SYS_ERR_OK;
+  acquire_spinlock(&sem->lock);
+
+  // Wakeup one?
+  if (sem->value == 0 && sem->queue != NULL) {
+    wakeup = thread_unblock_one_disabled(disp, &sem->queue, NULL);
+  } else {
+    sem->value++;
+  }
+
+  if (wakeup != NULL) {
+    err = domain_wakeup_on_disabled(wakeup->disp, wakeup, disp);
+    assert_disabled(err_is_ok(err));
+  }
+
+  release_spinlock(&sem->lock);
+  disp_enable(disp);
+
+  if (err_is_fail(err)) {
+    USER_PANIC_ERR(err, "remote wakeup from semaphore post");
+  }
+
+  if (wakeup != NULL) {
+    // XXX: Need directed yield to inter-disp thread
+    thread_yield();
+  }
+}
+
+
+int thread_barrier_init(struct thread_barrier *barrier, unsigned int count,
+                        thread_func_t back_func, void *data) {
+  if (count == 0)
+    return 1;
+  thread_mutex_init(&barrier->mutex);
+  thread_cond_init(&barrier->cond);
+
+  barrier->init_count = count;
+  barrier->count = count;
+  barrier->back_func = back_func;
+  barrier->data = data;
+  barrier->serial = 0;
+  barrier->error = 0;
+
+  return 0;
+}
+
+int sb_barrier_wait(struct thread_barrier *barrier) {
+  int res;
+
+  thread_mutex_lock(&barrier->mutex);
+
+  if (!--barrier->count) {
+    barrier->serial++;
+    barrier->count = barrier->init_count;
+
+    res = 1;
+
+    thread_cond_broadcast(&barrier->cond);
+
+    if (barrier->back_func != NULL && barrier->back_func(barrier->data) != 0) {
+      barrier->error = 1;
+      res = -1;
+    }
+
+    thread_mutex_unlock(&barrier->mutex);
+
+  } else {
+    unsigned int serial = barrier->serial;
+
+    do {
+      thread_cond_wait(&barrier->cond, &barrier->mutex);
+    } while (serial == barrier->serial);
+
+    res = barrier->error ? -1 : 0;
+
+    thread_mutex_unlock(&barrier->mutex);
+  }
+
+  return res;
+}
+
+void sb_barrier_destroy(struct thread_barrier *barrier) {}

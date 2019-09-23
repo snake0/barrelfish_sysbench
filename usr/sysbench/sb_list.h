@@ -17,19 +17,19 @@ typedef struct _list {
 
 #define sb_list_init(l)  do { (l).head = (l).tail = NULL;} while(0)
 
-#define sb_list_add(l, entry) do {\
-    if ((l).head ==  NULL) {\
-        (l).head = (l).tail = &((entry).listitem); \
-        (entry).listitem.next = NULL; \
-    } \
-    else { \
-        (l).tail->next = &((entry).listitem); \
-        (l).tail = &((entry).listitem); \
-    } \
+#define sb_list_add(l, entry) do {                  \
+    if ((l).head ==  NULL) {                        \
+        (l).head = (l).tail = &((entry).listitem);  \
+        (entry).listitem.next = NULL;               \
+    }                                               \
+    else {                                          \
+        (l).tail->next = &((entry).listitem);       \
+        (l).tail = &((entry).listitem);             \
+    }                                               \
 } while(0)
 
-#define sb_list_for_each(list)  \
-    sb_list_item_t *pos; \
+#define sb_list_for_each(list)                            \
+    sb_list_item_t *pos;                                  \
     for ((pos) = (list).head; (pos); (pos) = (pos)->next)
 
 #define sb_list_entry(type) \

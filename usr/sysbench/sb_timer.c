@@ -3,7 +3,6 @@
 //
 
 #include "sb_timer.h"
-#include "sb_timer.h"
 #include "sb_util.h"
 #include <string.h>
 

@@ -9,6 +9,17 @@ enum err {
   SB_OPTION_TYPE,
   SB_MAX
 };
+
+/* ConcurrentKit macros */
+#ifndef CK_MD_CACHELINE
+#define CK_MD_CACHELINE (64)
+#endif
+
+#define CK_CC_ALIGN(B) __attribute__((aligned(B)))
+#define CK_CC_CACHELINE CK_CC_ALIGN(CK_MD_CACHELINE)
+
+
+
 /*
   Calculate the smallest multiple of m that is not smaller than n, when m is a
   power of 2.
@@ -22,9 +33,6 @@ enum err {
 #define SB_PAD(n, m) (SB_ALIGN((n),(m)) - (n))
 
 /* Calculate padding to cache line size. */
-#ifndef CK_MD_CACHELINE
-#define CK_MD_CACHELINE (64)
-#endif
 #define SB_CACHELINE_PAD(n) (SB_PAD((n), CK_MD_CACHELINE))
 
 #define SB_UNLIKELY(x) (__builtin_expect(!!(x), 0))
