@@ -14,8 +14,6 @@ add_executable(sysbench
         sb_option.h
         sb_test.c
         sb_test.h
-        sb_thread.c
-        sb_thread.h
         sb_timer.c
         sb_timer.h
         sb_util.h

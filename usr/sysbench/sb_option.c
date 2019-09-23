@@ -7,7 +7,7 @@ static sb_list_t general_options;
 
 static sb_option_t default_general_options[] = {
   SB_OPT("threads", "number of threads to use", "1", INT),
-  SB_OPT("events", "limit for total number of events", "0", INT),
+  SB_OPT("events", "total number of events to execute", "10000", INT),
   SB_OPT("validate", "perform validation checks where possible", "off", BOOL),
   SB_OPT("help", "print help and exit", "off", BOOL),
 
@@ -40,10 +40,14 @@ static int sb_option_to_int(const char *name, sb_list_t opts, int *value) {
 
 static int sb_option_set_global(void) {
   int r;
-  r = sb_option_to_int(
-    "threads", general_options,
-    &sb_globals.threads);
-  if (r) return r;
+
+  if ((r = sb_option_to_int(
+    "threads", general_options, &sb_globals.threads)))
+    return r;
+  if ((r = sb_option_to_int(
+    "events", general_options, &sb_globals.events)))
+    return r;
+
   return SB_OK;
 }
 
@@ -85,7 +89,7 @@ static int parse_test_option(int i, int argc, char **argv) {
   sb_list_for_each(tests) {
     sb_test_t *test = sb_list_entry(sb_test_t);
     if (!strcmp(argv[i], test->sname)) {
-      sb_globals.test = test;
+      current_test = test;
       sb_globals.testname = test->sname;
 
       ++i;
@@ -105,21 +109,23 @@ static int parse_test_option(int i, int argc, char **argv) {
 }
 
 int sb_option_parse(int argc, char **argv) {
-  int r;
+  int r, i;
 
-  for (int i = 1; i < argc; ++i) {
-    // general option
+  for (i = 1; i < argc; ++i) {
     if (!strncmp("--", argv[i], 2)) {
       if ((r = parse_option(argv[i], general_options)))
         return r;
     } else {
-      if ((r = parse_test_option(i, argc, argv)))
-        return r;
       break;
     }
   }
 
-  sb_option_set_global();
+  if ((r = parse_test_option(i, argc, argv)))
+    return r;
+
+  if ((r = sb_option_set_global()))
+    return r;
+
   return SB_OK;
 }
 
@@ -133,7 +139,7 @@ void sb_option_print(void) {
   }
   {
     printf("test %s : command %s\n", sb_globals.testname, sb_globals.cmdname);
-    sb_list_for_each(sb_globals.test->options) {
+    sb_list_for_each(current_test->options) {
       sb_option_t *opt = sb_list_entry(sb_option_t);
       printf("  %-20s: %4s\n", opt->name, opt->value);
     }

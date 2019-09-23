@@ -49,4 +49,8 @@ static inline void release_spinlock(spinlock_t *spinlock)
 			: "=Q" (*spinlock) : "r" (0) : "memory");
 }
 
+static inline void init_spinlock(spinlock_t *spinlock) {
+  *spinlock = 0;
+}
+
 #endif // ARCH_AARCH64_BARRELFISH_KPI_SPINLOCKS_H

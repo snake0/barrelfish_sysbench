@@ -4,6 +4,7 @@
 
 #include "sb_timer.h"
 #include "sb_util.h"
+#include "sysbench.h"
 #include <string.h>
 
 /* Some functions for simple time operations */
@@ -16,7 +17,7 @@ void sb_timer_init(sb_timer_t *t) {
   memset(&t->time_start, 0, sizeof(struct timespec));
   memset(&t->time_end, 0, sizeof(struct timespec));
 
-  t->lock = false;
+  init_spinlock(&t->lock);
 
   sb_timer_reset(t);
 }
@@ -36,7 +37,7 @@ void sb_timer_reset(sb_timer_t *t) {
 void sb_timer_copy(sb_timer_t *to, sb_timer_t *from) {
   memcpy(to, from, sizeof(sb_timer_t));
 
-  to->lock = false;
+  init_spinlock(&to->lock);
 }
 
 /* check whether the timer is running */
@@ -137,4 +138,24 @@ sb_timer_t sb_timer_merge(sb_timer_t *t1, sb_timer_t *t2) {
     t.min_time = t2->min_time;
 
   return t;
+}
+
+
+int init_timers(void) {
+
+/* init per thread timers */
+  size_t size = sizeof(sb_timer_t) * sb_globals.threads;
+
+  posix_memalign((void **) &timers, CK_MD_CACHELINE, size);
+  posix_memalign((void **) &timers_copy, CK_MD_CACHELINE, size);
+
+  if (timers == NULL || timers_copy == NULL)
+    return SB_INIT_FAIL;
+
+  memset(timers, 0, size);
+  memset(timers_copy, 0, size);
+  for (unsigned i = 0; i < sb_globals.threads; i++)
+    sb_timer_init(&timers[i]);
+
+  return SB_OK;
 }

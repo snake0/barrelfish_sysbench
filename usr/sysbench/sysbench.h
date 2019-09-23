@@ -9,24 +9,25 @@
 #include "sb_test.h"
 #include "sb_util.h"
 #include "sb_timer.h"
+#include "sb_counter.h"
+
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <barrelfish/threads.h>
 #include <barrelfish_kpi/spinlocks_arch.h>
+#include <barrelfish/debug.h>
+
 
 struct {
+  int error CK_CC_CACHELINE;
   int threads CK_CC_CACHELINE;
+  int events CK_CC_CACHELINE;
   const char *testname, *cmdname;
-  sb_test_t *test;
+
 } sb_globals CK_CC_CACHELINE;
 
-/* Global execution timer */
-sb_timer_t sb_exec_timer CK_CC_CACHELINE;
-
-/* timers for checkpoint reports */
-sb_timer_t sb_intermediate_timer;
-sb_timer_t sb_checkpoint_timer;
+void sb_report_cumulative(sb_stat_t *stat);
 
 #endif //SYSBENCH_SYSBENCH_H

@@ -7,6 +7,9 @@ enum err {
   SB_OPTION_UNKNOWN,
   SB_TEST_UNKNOWN,
   SB_OPTION_TYPE,
+  SB_MALLOC_FAIL,
+  SB_THREAD_CREATE_FAIL,
+  SB_INIT_FAIL,
   SB_MAX
 };
 
@@ -36,19 +39,24 @@ enum err {
 #define SB_CACHELINE_PAD(n) (SB_PAD((n), CK_MD_CACHELINE))
 
 #define SB_UNLIKELY(x) (__builtin_expect(!!(x), 0))
-/*
-static char *errmsg[] = {
-  [SB_OPTION_SYNTAX]="Invalid option syntax",
-  [SB_OPTION_UNKNOWN]="Unknown option",
-  [SB_TEST_UNKNOWN]="Unknown test",
-  [SB_OPTION_TYPE]="Option type error",
-};
 
-#define ASSERT(f) do { \
-  int r = (f); \
-  if (r) printf("SYSBENCH: %s\n",errmsg[r]);\
+#define ASSERT(f) do {                                        \
+  char *errmsg[] = {                                          \
+    [SB_OPTION_SYNTAX] = "Invalid option syntax",             \
+    [SB_OPTION_UNKNOWN] = "Unknown option",                   \
+    [SB_TEST_UNKNOWN] = "Unknown test",                       \
+    [SB_OPTION_TYPE] = "Option type error",                   \
+    [SB_MALLOC_FAIL] = "Malloc failed",                       \
+    [SB_THREAD_CREATE_FAIL] = "thread_create_failed",         \
+    [SB_INIT_FAIL] = "Main thread init failed",               \
+  };                                                          \
+    int r = (f);                                              \
+    if (r)  {                                                 \
+      printf("SYSBENCH: %s\n",errmsg[r]);                     \
+      return r;                                               \
+    }                                                         \
 } while(0)
-*/
+
 # define SB_ATTRIBUTE_UNUSED __attribute__((unused))
 
 /* Compile-time assertion */

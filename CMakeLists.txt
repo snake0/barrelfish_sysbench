@@ -7681,9 +7681,7 @@ add_executable(barrelfish_sysbench
     usr/sysbench/sb_option.h
     usr/sysbench/sb_test.c
     usr/sysbench/sb_test.h
-    usr/sysbench/sb_thread.c
-    usr/sysbench/sb_thread.h
-    usr/sysbench/sb_timer.c
+        usr/sysbench/sb_timer.c
     usr/sysbench/sb_timer.h
     usr/sysbench/sb_util.h
     usr/sysbench/sysbench.c
@@ -7866,7 +7864,6 @@ add_executable(barrelfish_sysbench
     usr/tests/xomptest/xomptest.h
     usr/tests/yield_test/yield_test.c
     usr/tracectrl/tracectrl.c
-    usr/try/main.c
     usr/vmkitmon/apic.c
     usr/vmkitmon/apic.h
     usr/vmkitmon/benchmark.c
