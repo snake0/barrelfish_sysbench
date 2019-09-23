@@ -11,10 +11,6 @@ typedef struct _list {
   sb_list_item_t *head, *tail;
 } sb_list_t;
 
-#ifndef offsetof
-# define offsetof(type, member) ((size_t) &((type *)0)->member)
-#endif
-
 #define sb_list_init(l)  do { (l).head = (l).tail = NULL;} while(0)
 
 #define sb_list_add(l, entry) do {                  \

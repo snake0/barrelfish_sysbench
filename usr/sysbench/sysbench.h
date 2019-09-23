@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <barrelfish/threads.h>
+#include <barrelfish_kpi/spinlocks_arch.h>
 
 struct {
   int threads CK_CC_CACHELINE;

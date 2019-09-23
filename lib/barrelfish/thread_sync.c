@@ -430,7 +430,7 @@ int thread_barrier_init(struct thread_barrier *barrier, unsigned int count,
   return 0;
 }
 
-int sb_barrier_wait(struct thread_barrier *barrier) {
+int thread_barrier_wait(struct thread_barrier *barrier) {
   int res;
 
   thread_mutex_lock(&barrier->mutex);
@@ -464,5 +464,3 @@ int sb_barrier_wait(struct thread_barrier *barrier) {
 
   return res;
 }
-
-void sb_barrier_destroy(struct thread_barrier *barrier) {}
