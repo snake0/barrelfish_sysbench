@@ -44,6 +44,7 @@ static int sb_option_set_global(void) {
     "threads", general_options,
     &sb_globals.threads);
   if (r) return r;
+  return SB_OK;
 }
 
 int sb_option_set_value(const char *name, char *value, sb_list_t opts) {
@@ -70,7 +71,7 @@ static int parse_option(char *arg, sb_list_t opts) {
   char *assign = strchr(arg, '=');
   if (!assign)
     return SB_OPTION_SYNTAX;
-printf("----%s : %s\n", arg+2,assign+1);
+
   *assign = '\0';
   if (sb_option_set_value(arg + 2, assign + 1, opts))
     return SB_OPTION_UNKNOWN;
@@ -83,7 +84,6 @@ static int parse_test_option(int i, int argc, char **argv) {
 
   sb_list_for_each(tests) {
     sb_test_t *test = sb_list_entry(sb_test_t);
-
     if (!strcmp(argv[i], test->sname)) {
       sb_globals.test = test;
       sb_globals.testname = test->sname;
